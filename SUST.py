@@ -56,7 +56,7 @@ class SUST:
                 '24[0][3][name]'.encode(): 'form[24][field_1588749842_2715][]'.encode(),
                 '24[0][3][value]'.encode():'否'.encode(),
                 '24[0][4][name]'.encode(): 'form[24][field_1588749886_2103][]'.encode(),
-                '24[0][4][value]'.encode(): '1'.encode()
+                '24[0][4][value]'.encode(): ''.encode()
             }
         elif code == 25:
             tar_dic = {
@@ -69,7 +69,7 @@ class SUST:
                 '25[0][3][name]'.encode(): 'form[25][field_1588750343_3510][]'.encode(),
                 '25[0][3][value]'.encode():'否'.encode(),
                 '25[0][4][name]'.encode(): 'form[25][field_1588750363_5268][]'.encode(),
-                '25[0][4][value]'.encode(): '1'.encode()
+                '25[0][4][value]'.encode(): ''.encode()
             }
         elif code == 13:
             tar_dic={
@@ -86,7 +86,7 @@ class SUST:
                 '13[0][5][name]'.encode():'form[13][field_1587998777_8524][]'.encode(),
                 '13[0][5][value]'.encode():'否'.encode(),
                 '13[0][6][name]'.encode():'form[13][field_1587635441_3730][]'.encode(),
-                '13[0][6][value]'.encode():'0'.encode()
+                '13[0][6][value]'.encode():''.encode()
             }
         return tar_dic
 
