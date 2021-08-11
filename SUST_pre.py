@@ -1,3 +1,6 @@
+#!!!!!!!!!!!!!!!!!废弃
+#在登录失效的情况下可以使用这个作为备选方案
+
 from typing import ChainMap, List
 from EmailSender import EmailSender
 import requests
@@ -227,7 +230,7 @@ class SUST:
 
 def Test():
     sust = SUST()
-    sust.run(24)
+    sust.run()
     return
 
 if __name__ == "__main__":

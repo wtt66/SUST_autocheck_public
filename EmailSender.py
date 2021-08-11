@@ -26,8 +26,8 @@ class EmailSender:
         return False
 
 def main():
-    msg_from = 'ccccccccheer@foxmail.com'
-    msg_to = 'nnnnnnnnnick@qq.com'
+    msg_from = ''
+    msg_to = ''
     subject = 'test email'
     content = '第一封测试邮件'
     msg = MIMEText(content)
