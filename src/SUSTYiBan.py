@@ -68,4 +68,4 @@ def checkInByCookies(code:int, cookies:str, location:str = None) -> dict:
 
 def checkInByPwd(mobile:str, pwd:str, code:int, location:str = None) -> dict:
     cookies = getCookies(getToken(login(mobile, pwd)))
-    checkInByCookies(code, cookies, location)
+    return checkInByCookies(code, cookies, location)
