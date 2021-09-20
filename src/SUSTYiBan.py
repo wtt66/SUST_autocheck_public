@@ -3,7 +3,7 @@ from requests import post, get
 from utils import *
 
 
-__all__ = ['checkInByCookies','checkInByPwd']
+__all__ = ['checkInByCookies','checkInByPwd','checkUser']
 
 def login(mobile:str, pwd:str) -> dict:
     data = {
@@ -52,7 +52,7 @@ def getCookies(token:str) -> str:
     return ''.join(map(lambda x:x.split(';')[0] ,(filter(lambda a:a.find('waf_cookie=') == -1 ,(cookies if isinstance(cookies, list) else [cookies])))))
 
 def checkInByCookies(code:int, cookies:str, location:str = None) -> dict:
-    url = 'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id=13&list_id=9' if code == 13 else f' http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id={code}&list_id=12'
+    url = 'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id=13&list_id=9' if code == 13 else f'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id={code}&list_id=12'
     header = {
         'User-Agent': USER_AGENT,
         'AppVersion': '5.0',
@@ -69,3 +69,18 @@ def checkInByCookies(code:int, cookies:str, location:str = None) -> dict:
 def checkInByPwd(mobile:str, pwd:str, code:int, location:str = None) -> dict:
     cookies = getCookies(getToken(login(mobile, pwd)))
     return checkInByCookies(code, cookies, location)
+
+def checkUser(userData:dict, code:int) -> dict:
+    '''
+    单个用户打卡
+    :param userData:用户数据, 必须包含name, mobile, password. 可以包含location
+    :param code:打卡的代码
+    '''
+    loc = None if 'location' not in userData else userData['location']
+    res = None
+    try:
+        res = checkInByPwd(userData['mobile'], userData['password'], code, loc)
+    except:
+        raise ValueError('userdata is not suitable')
+    return res
+
