@@ -1,7 +1,7 @@
 #易班打卡,python接口封装
 from requests import post, get
 from utils import *
-
+import sys
 
 __all__ = ['checkInByCookies','checkInByPwd','checkUser']
 
@@ -84,3 +84,22 @@ def checkUser(userData:dict, code:int) -> dict:
         raise ValueError('userdata is not suitable')
     return res
 
+def main():
+    img = '''
+    =@@@@@@* @@^    *@@  =@@@@@@*@@@@@@@@@*          /@@`               ]/               /@@@@@@^ @@*                        @@*                 
+   *@@       @@^    *@@ *@@         =@^             =@^@@    .]*   ,]  ]@@]]    ]]]`   ,@@*       @@*,]]*     ,]]`     ,]]]  @@*  ,]*
+    ,@@\`    @@^    *@@  ,@@\`      =@^            =@/ =@\   =@^   =@^ [@@[[ ,@@` ,\@^ @@^        @@@` \@\  /@/ ,\@` /@/` ,` @@*,@@` 
+       [@@@* @@^    *@@     [@@@*   =@^    @@@@@  *@@]]]@@^  =@^   =@^  @@   @@*    @@ @@`        @@*   @@ =@@@@@@@^=@^      @@@@`   
+         =@^ =@^    =@^       =@^   =@^           @@[[[[[@@` =@^   @@^  @@   \@`   .@@ =@@        @@*   @@ =@\      ,@\      @@,@@`  
+   *@@@@@@/*  \@@@@@@/  *@@@@@@/*   =@^          =@^     ,@@ .@@@@@@@^  =@@@` \@@@@@/   *\@@@@@@^ @@*   @@  ,@@\/@@  ,@@@@@^ @@* =@@`
+    '''
+    print(img)
+    if len(sys.argv) < 4:
+        print(f'[-]please use: python SUSTYiBan.py [code] [phone] [password] [None|location]')
+        print(f'24 -> 晨检查\n25 -> 午检')
+        print('location -> 一定要加上双引号,地区之吉间空格隔开')
+        return
+    checkInByPwd(sys.argv[2], sys.argv[3], sys.argv[1])
+
+if __name__ == '__main__':
+    main()
