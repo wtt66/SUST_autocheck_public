@@ -25,7 +25,16 @@ from SUSTYiBan import *
 checkInByPwd('手机','密码',code,location)
 ```
 
-
+### 命令行版本
+```shell
+>python SUSTYiBan.py [code] [phone] [password] [None|location]
+```
+```python
+code : 代码
+phone : 手机账号
+password : 密码
+location : 选填|地址
+```
 
 **以下全部废弃， 可作为备选方案**
 ---------------
