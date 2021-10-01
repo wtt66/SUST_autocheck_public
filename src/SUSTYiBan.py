@@ -55,13 +55,16 @@ def userSure(data:str, cookies:str, token:str) -> bool:
         return False
     url = 'https://oauth.yiban.cn/code/usersure'
     data1 = {
-        'client_id':client_id.group(),
-        'redirect_uri':redirect_uri.group(),
-        'state':state.group(),
-        'display':display.group(),
+        'client_id':[client_id.group(), client_id.group(1)],
+        'redirect_uri':[redirect_uri.group(), redirect_uri.group(1)],
+        'state':[state.group(), state.group(1)],
+        'display':[display.group(), display.group(1)],
         'scope':'1,2,3,4,'
     }
     headers = {
+        'User-Agent': USER_AGENT,
+        'AppVersion': '5.0',
+        'X-Requested-With': 'com.yiban.app',
         'Content-Type': 'application/x-www-form-urlencoded',
         'cookies': cookies,
         'logintoken': token,
