@@ -1,9 +1,10 @@
 #易班打卡,python接口封装
 from requests import post, get
+from re import search
 from utils import *
 import sys
 
-__all__ = ['checkInByCookies','checkInByPwd','checkUser']
+__all__ = ['checkInByCookies','checkInByPwd','checkUser','userSure','getTokenByPwd']
 
 def login(mobile:str, pwd:str) -> dict:
     data = {
@@ -37,7 +38,42 @@ def getToken(response:dict) -> str:
         raise KeyError('target has not access_token')
     return response['data']['access_token']
 
-def getCookies(token:str) -> str:
+def getTokenByPwd(mobile:str, pwd:str) -> str:
+    return getToken(login(mobile, pwd))
+
+def userSure(data:str, cookies:str, token:str) -> bool:
+    '''
+    仅当需要授权并且授权成功会返回True, 其余返回False
+    '''
+    if data.find('易班授权') == -1:
+        return False
+    client_id = search(r'id="client_id" value="(.+?)"', data)
+    redirect_uri = search(r'id="redirect_uri" value="(.+?)"',data)
+    state = search(r'id="state" value="(.*?)"',data)
+    display = search(r'id="display" value="(.+?)"',data)
+    if client_id == None or redirect_uri == None or state == None or display == None:
+        return False
+    url = 'https://oauth.yiban.cn/code/usersure'
+    data1 = {
+        'client_id':client_id.group(),
+        'redirect_uri':redirect_uri.group(),
+        'state':state.group(),
+        'display':display.group(),
+        'scope':'1,2,3,4,'
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'cookies': cookies,
+        'logintoken': token,
+        'Authorization': token,
+        'Origin': 'https://oauth.yiban.cn'
+    }
+    res = post(url, data=data1, headers=headers)
+    if res.status_code != 200:
+        raise ValueError("认证失败")
+    return True
+
+def getCookies(token:str, shouldEnsure = True) -> str:
     header = {
         'User-Agent': USER_AGENT,
         'AppVersion': '5.0',
@@ -49,7 +85,10 @@ def getCookies(token:str) -> str:
     }
     res = get('http://f.yiban.cn/iapp610661', headers=header)
     cookies: str or list = res.headers['set-cookie']
-    return ''.join(map(lambda x:x.split(';')[0] ,(filter(lambda a:a.find('waf_cookie=') == -1 ,(cookies if isinstance(cookies, list) else [cookies])))))
+    cookies:str = ''.join(map(lambda x:x.split(';')[0] ,(filter(lambda a:a.find('waf_cookie=') == -1 ,(cookies if isinstance(cookies, list) else [cookies])))))
+    if shouldEnsure and userSure(res.content.decode(), cookies, token):
+        return getCookies(token, False)
+    return cookies
 
 def checkInByCookies(code:int, cookies:str, location:str = None) -> dict:
     url = 'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id=13&list_id=9' if code == 13 else f'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id={code}&list_id=12'
@@ -80,8 +119,10 @@ def checkUser(userData:dict, code:int) -> dict:
     res = None
     try:
         res = checkInByPwd(userData['mobile'], userData['password'], code, loc)
+    except ValueError as valueError:
+        raise valueError
     except:
-        raise ValueError('userdata is not suitable')
+        raise ValueError("Something unexpect happened")
     return res
 
 def main():
