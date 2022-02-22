@@ -1,18 +1,20 @@
-#易班打卡,python接口封装
+# 易班打卡,python接口封装
 from requests import post, get
 from re import search
 from utils import *
 import sys
 
-__all__ = ['checkInByCookies','checkInByPwd','checkUser','userSure','getTokenByPwd']
+__all__ = ['checkInByCookies', 'checkInByPwd',
+           'checkUser', 'userSure', 'getTokenByPwd']
 
-def login(mobile:str, pwd:str) -> dict:
+
+def login(mobile: str, pwd: str) -> dict:
     data = {
         'device': 'vivo AV1938T',
         'v': '5.0',
         'password': passworldEncode(pwd),
         'token': '',
-        'mobile':mobile,
+        'mobile': mobile,
         'ct': '2',
         'identify': getIMEI(),
         'sversion': '25',
@@ -30,36 +32,40 @@ def login(mobile:str, pwd:str) -> dict:
         'Referer': 'https://mobile.yiban.cn',
         'logintoken': ''
     }
-    res = post('https://mobile.yiban.cn/api/v4/passport/login', headers=header, data=data)
+    res = post('https://mobile.yiban.cn/api/v4/passport/login',
+               headers=header, data=data)
     return res.json()
 
-def getToken(response:dict) -> str:
+
+def getToken(response: dict) -> str:
     if 'data' not in response or 'access_token' not in response['data']:
         raise KeyError('target has not access_token')
     return response['data']['access_token']
 
-def getTokenByPwd(mobile:str, pwd:str) -> str:
+
+def getTokenByPwd(mobile: str, pwd: str) -> str:
     return getToken(login(mobile, pwd))
 
-def userSure(data:str, cookies:str, token:str) -> bool:
+
+def userSure(data: str, cookies: str, token: str) -> bool:
     '''
     仅当需要授权并且授权成功会返回True, 其余返回False
     '''
     if data.find('易班授权') == -1:
         return False
     client_id = search(r'id="client_id" value="(.+?)"', data)
-    redirect_uri = search(r'id="redirect_uri" value="(.+?)"',data)
-    state = search(r'id="state" value="(.*?)"',data)
-    display = search(r'id="display" value="(.+?)"',data)
+    redirect_uri = search(r'id="redirect_uri" value="(.+?)"', data)
+    state = search(r'id="state" value="(.*?)"', data)
+    display = search(r'id="display" value="(.+?)"', data)
     if client_id == None or redirect_uri == None or state == None or display == None:
         return False
     url = 'https://oauth.yiban.cn/code/usersure'
     data1 = {
-        'client_id':[client_id.group(), client_id.group(1)],
-        'redirect_uri':[redirect_uri.group(), redirect_uri.group(1)],
-        'state':[state.group(), state.group(1)],
-        'display':[display.group(), display.group(1)],
-        'scope':'1,2,3,4,'
+        'client_id': [client_id.group(), client_id.group(1)],
+        'redirect_uri': [redirect_uri.group(), redirect_uri.group(1)],
+        'state': [state.group(), state.group(1)],
+        'display': [display.group(), display.group(1)],
+        'scope': '1,2,3,4,'
     }
     headers = {
         'User-Agent': USER_AGENT,
@@ -76,7 +82,8 @@ def userSure(data:str, cookies:str, token:str) -> bool:
         raise ValueError("认证失败")
     return True
 
-def getCookies(token:str, shouldEnsure = True) -> str:
+
+def getCookies(token: str, shouldEnsure=True) -> str:
     header = {
         'User-Agent': USER_AGENT,
         'AppVersion': '5.0',
@@ -88,12 +95,14 @@ def getCookies(token:str, shouldEnsure = True) -> str:
     }
     res = get('http://f.yiban.cn/iapp610661', headers=header)
     cookies: str or list = res.headers['set-cookie']
-    cookies:str = ''.join(map(lambda x:x.split(';')[0] ,(filter(lambda a:a.find('waf_cookie=') == -1 ,(cookies if isinstance(cookies, list) else [cookies])))))
+    cookies: str = ''.join(map(lambda x: x.split(';')[0], (filter(lambda a: a.find(
+        'waf_cookie=') == -1, (cookies if isinstance(cookies, list) else [cookies])))))
     if shouldEnsure and userSure(res.content.decode(), cookies, token):
         return getCookies(token, False)
     return cookies
 
-def checkInByCookies(code:int, cookies:str, location:str = None) -> dict:
+
+def checkInByCookies(code: int, cookies: str, location: str = None) -> dict:
     url = 'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id=13&list_id=9' if code == 13 else f'http://yiban.sust.edu.cn/v4/public/index.php/Index/formflow/add.html?desgin_id={code}&list_id=12'
     header = {
         'User-Agent': USER_AGENT,
@@ -108,16 +117,22 @@ def checkInByCookies(code:int, cookies:str, location:str = None) -> dict:
     res = post(url, data=data, headers=header)
     return res.json()
 
-def checkInByPwd(mobile:str, pwd:str, code:int, location:str = None) -> dict:
+
+def checkInByPwd(mobile: str, pwd: str, code: int, location: str = None) -> dict:
+    '''
+    账号密码打卡
+    '''
     cookies = getCookies(getToken(login(mobile, pwd)))
     return checkInByCookies(code, cookies, location)
 
-def checkUser(userData:dict, code:int) -> dict:
-    '''
+
+def checkUser(userData: dict, code: int) -> dict:
+    """
     单个用户打卡
+    :return: 返回打卡的结果, 一个`dict`类似`{'code':1,'msg':'SU'}`,如果`code==1`就说明打卡成功
     :param userData:用户数据, 必须包含name, mobile, password. 可以包含location
     :param code:打卡的代码
-    '''
+    """
     loc = None if 'location' not in userData else userData['location']
     res = None
     try:
@@ -128,22 +143,24 @@ def checkUser(userData:dict, code:int) -> dict:
         raise ValueError("Something unexpect happened")
     return res
 
+
 def main():
-    img = '''
-    =@@@@@@* @@^    *@@  =@@@@@@*@@@@@@@@@*          /@@`               ]/               /@@@@@@^ @@*                        @@*                 
-   *@@       @@^    *@@ *@@         =@^             =@^@@    .]*   ,]  ]@@]]    ]]]`   ,@@*       @@*,]]*     ,]]`     ,]]]  @@*  ,]*
-    ,@@\`    @@^    *@@  ,@@\`      =@^            =@/ =@\   =@^   =@^ [@@[[ ,@@` ,\@^ @@^        @@@` \@\  /@/ ,\@` /@/` ,` @@*,@@` 
-       [@@@* @@^    *@@     [@@@*   =@^    @@@@@  *@@]]]@@^  =@^   =@^  @@   @@*    @@ @@`        @@*   @@ =@@@@@@@^=@^      @@@@`   
-         =@^ =@^    =@^       =@^   =@^           @@[[[[[@@` =@^   @@^  @@   \@`   .@@ =@@        @@*   @@ =@\      ,@\      @@,@@`  
-   *@@@@@@/*  \@@@@@@/  *@@@@@@/*   =@^          =@^     ,@@ .@@@@@@@^  =@@@` \@@@@@/   *\@@@@@@^ @@*   @@  ,@@\/@@  ,@@@@@^ @@* =@@`
-    '''
+    img = r"""
+   _____ __  _____________    ___         __        ________              __  
+  / ___// / / / ___/_  __/   /   | __  __/ /_____  / ____/ /_  ___  _____/ /__
+  \__ \/ / / /\__ \ / /_____/ /| |/ / / / __/ __ \/ /   / __ \/ _ \/ ___/ //_/
+ ___/ / /_/ /___/ // /_____/ ___ / /_/ / /_/ /_/ / /___/ / / /  __/ /__/ ,<   
+/____/\____//____//_/     /_/  |_\__,_/\__/\____/\____/_/ /_/\___/\___/_/|_|  
+    """
     print(img)
     if len(sys.argv) < 4:
-        print(f'[-]please use: python SUSTYiBan.py [code] [phone] [password] [None|location]')
+        print(
+            f'[-]please use: python SUSTYiBan.py [code] [phone] [password] [None|location]')
         print(f'24 -> 晨检查\n25 -> 午检')
         print('location -> 一定要加上双引号,地区之吉间空格隔开')
         return
     checkInByPwd(sys.argv[2], sys.argv[3], sys.argv[1])
+
 
 if __name__ == '__main__':
     main()
