@@ -121,6 +121,7 @@ def checkInByCookies(code: int, cookies: str, location: str = None) -> dict:
 def checkInByPwd(mobile: str, pwd: str, code: int, location: str = None) -> dict:
     '''
     账号密码打卡
+    :return: 返回一个`dict`,像这样的`{'code':1,'msg':'SU}` ,`code == 1`表示打卡成功
     '''
     cookies = getCookies(getToken(login(mobile, pwd)))
     return checkInByCookies(code, cookies, location)
@@ -159,7 +160,17 @@ def main():
         print(f'24 -> 晨检查\n25 -> 午检')
         print('location -> 一定要加上双引号,地区之吉间空格隔开')
         return
-    checkInByPwd(sys.argv[2], sys.argv[3], sys.argv[1])
+    try:
+        res = checkInByPwd(sys.argv[2], sys.argv[3], sys.argv[1])
+        if res['code'] != 1:
+            print('[-]打卡失败')
+        else:
+            print(f'[*]{sys.argv[1]} 打卡成功')
+    except ValueError as ve:
+        print(ve)
+        print('[-]打卡失败')
+    except:
+        print('[-]打卡失败')
 
 
 if __name__ == '__main__':
