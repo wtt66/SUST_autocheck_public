@@ -146,7 +146,7 @@ def checkUser(userData: dict, code: int, useLoc: bool = False) -> dict:
     return res
 
 
-def main():
+def CLI():
     img = r"""
    _____ __  _____________    ___         __        ________              __  
   / ___// / / / ___/_  __/   /   | __  __/ /_____  / ____/ /_  ___  _____/ /__
@@ -175,4 +175,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    CLI()
