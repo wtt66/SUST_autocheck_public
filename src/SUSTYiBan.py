@@ -127,14 +127,15 @@ def checkInByPwd(mobile: str, pwd: str, code: int, location: str = None) -> dict
     return checkInByCookies(code, cookies, location)
 
 
-def checkUser(userData: dict, code: int) -> dict:
+def checkUser(userData: dict, code: int, useLoc: bool = False) -> dict:
     """
     单个用户打卡
     :return: 返回打卡的结果, 一个`dict`类似`{'code':1,'msg':'SU'}`,如果`code==1`就说明打卡成功
     :param userData:用户数据, 必须包含name, mobile, password. 可以包含location
     :param code:打卡的代码
+    :param useLoc: 是否使用用户自己的位置, 默认使用学校位置
     """
-    loc = None if 'location' not in userData else userData['location']
+    loc = None if 'location' not in userData or not useLoc else userData['location']
     res = None
     try:
         res = checkInByPwd(userData['mobile'], userData['password'], code, loc)
@@ -158,7 +159,7 @@ def main():
         print(
             f'[-]please use: python SUSTYiBan.py [code] [phone] [password] [None|location]')
         print(f'24 -> 晨检查\n25 -> 午检')
-        print('location -> 一定要加上双引号,地区之吉间空格隔开')
+        print('location -> 一定要加上双引号,地区之间空格隔开')
         return
     try:
         res = checkInByPwd(sys.argv[2], sys.argv[3], sys.argv[1])
